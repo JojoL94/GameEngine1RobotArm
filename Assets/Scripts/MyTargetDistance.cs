@@ -10,9 +10,15 @@ public class MyTargetDistance : MonoBehaviour
     public GameObject product;
     [SerializeField] private bool leftFinger;
     [SerializeField] private Transform defaultFingerPosition;
-    [SerializeField] private float speed = 2f;
+    [SerializeField] private float speed = 1f;
+    private bool isReset = false;
     void Update()
     {
+        isReset = transform.root.GetComponent<MyObjectManager>().isReset;
+        if (isReset == true)
+        {
+            isFingerPosition = false;
+        }
         if (isFingerPosition)
         {
             if (leftFinger)
@@ -23,6 +29,9 @@ public class MyTargetDistance : MonoBehaviour
             {
                 target = product.transform.GetChild(1).transform;
             }
+            Vector3 targetPosition = target.position + (-target.forward * distance);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed * 2);
+            transform.LookAt(targetPosition);
         }
         else
         {
@@ -34,9 +43,10 @@ public class MyTargetDistance : MonoBehaviour
             {
                 target = transform.root.GetComponent<MyObjectManager>().target;
             }
+            Vector3 targetPosition = target.position + (-target.forward * distance);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed);
+            transform.LookAt(targetPosition);
         }
-        Vector3 targetPosition = target.position + (-target.forward * distance);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed);
-        transform.LookAt(targetPosition);
+
     }
 }

@@ -446,6 +446,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: TargetPositionHandler
       objectReference: {fileID: 0}
+    - target: {fileID: 4614516044117658205, guid: 27f6530f692e3f74ba5ffe265b0b60fc,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 6557206046495961012, guid: 27f6530f692e3f74ba5ffe265b0b60fc,
         type: 3}
       propertyPath: m_LocalPosition.y
@@ -805,8 +810,10 @@ MonoBehaviour:
   produktPrefab: {fileID: 3255441092763381800, guid: 645ddea8b997c2847a2f41521fd8b868,
     type: 3}
   speed: 1
+  produkt: {fileID: 0}
   endPoint: {fileID: 0}
   productIsWaiting: 0
+  somethingHasSpawned: 0
 --- !u!65 &1852598259
 BoxCollider:
   m_ObjectHideFlags: 0
