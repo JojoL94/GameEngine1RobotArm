@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 
 public class MyObjectManager : MonoBehaviour
@@ -13,22 +14,24 @@ public class MyObjectManager : MonoBehaviour
     [SerializeField] private Transform fallPosition;
     [SerializeField] private Transform fingerHebePosition;
     [SerializeField] float distance = 0.1f;
+    [SerializeField] private GameObject leftFingerTarget;
+    [SerializeField] private GameObject rightFingerTarget;
     public Transform target;
     public GameObject produkt;
     public bool isPickedUp = false;
-    
-    
+    public bool isHebePosition = false;
+    private int chooseBandNr = 0;
     private bool processProduct = false;
+    private bool rotating = false;
 
-    // Update is called once per frame
-    
-    
-    
+
     void Update()
     {
         if (productionBand.GetComponent<MyProductionSpawner>().productIsWaiting && !processProduct)
         {
             processProduct = true;
+            chooseBandNr = 2/*Random.Range(1, 3)*/;
+            rotating = true;
         }
         else
         {
@@ -40,13 +43,31 @@ public class MyObjectManager : MonoBehaviour
             if (!isPickedUp)
             {
                 target = productionBand.GetComponent<MyProductionSpawner>().endPoint;
+                leftFingerTarget.GetComponent<MyTargetDistance>().target = target;
             }
-            else
+            else if (isPickedUp && !isHebePosition)
             {
                 target = hebePosition;
-                Vector3 targetPosition = fingerHebePosition.position + (-fingerHebePosition.forward * distance);
-                produkt.transform.position = Vector3.Lerp(produkt.transform.position, targetPosition, Time.deltaTime * 2f);
-                produkt.transform.LookAt(hebePosition);
+                
+                    if (chooseBandNr == 2)
+                    {
+                        Vector3 targetPosition = fingerHebePosition.position + (-fingerHebePosition.forward * distance);
+                        produkt.transform.position = Vector3.Lerp(produkt.transform.position, targetPosition, Time.deltaTime * 5f);
+                        produkt.transform.rotation = hebePosition.root.transform.rotation;
+                        if (rotating)
+                        {
+                            Vector3 to = new Vector3(0, 180, 0);
+                            if (Vector3.Distance(transform.eulerAngles, to) > 1f)
+                            {
+                                hebePosition.root.transform.eulerAngles = Vector3.Lerp(hebePosition.root.transform.rotation.eulerAngles, to, 0.5f * Time.deltaTime);
+                            }
+                            else
+                            {
+                                hebePosition.root.transform.eulerAngles = to;
+                                rotating = false;
+                            }
+                        }
+                    }
             }
         }
     }
