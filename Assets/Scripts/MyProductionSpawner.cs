@@ -36,7 +36,6 @@ public class MyProductionSpawner : MonoBehaviour
             }
             else
             {
-                produkt = null;
                 productIsWaiting = true;
             }
         }

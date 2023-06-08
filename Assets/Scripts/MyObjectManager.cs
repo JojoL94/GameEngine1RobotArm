@@ -24,13 +24,17 @@ public class MyObjectManager : MonoBehaviour
     private bool processProduct = false;
     private bool rotating = false;
     public bool isReset = false;
+    private float turningRate = 60f; 
+    private Quaternion _targetRotation;
+    // Call this when you want to turn the object smoothly.
 
     void Update()
     {
         if (productionBand.GetComponent<MyProductionSpawner>().productIsWaiting && !processProduct)
         {
             processProduct = true;
-            chooseBandNr = 2 /*Random.Range(1, 3)*/;
+            chooseBandNr = Random.Range(1, 4);
+            
         }
         else
         {
@@ -41,25 +45,27 @@ public class MyObjectManager : MonoBehaviour
         {
             if (!isPickedUp)
             {
+                
                 target = productionBand.GetComponent<MyProductionSpawner>().endPoint;
-                leftFingerTarget.GetComponent<MyTargetDistance>().target = target;
+                CheckForHit();
             }
             else if (isPickedUp)
             {
-                if (chooseBandNr == 2)
+                Debug.Log(chooseBandNr);
+                if (chooseBandNr == 1)
                 {
                     if (rotating)
                     {
                         target = hebePosition;
-                        Vector3 to = new Vector3(0, 180, 0);
-                        if (Vector3.Distance(transform.eulerAngles, to) > 1f)
+                        Quaternion _targetRotation = endBand1.transform.rotation;
+                        if (Vector3.Distance(hebePosition.root.transform.eulerAngles, endBand1.transform.eulerAngles) > 1f)
                         {
-                            hebePosition.root.transform.eulerAngles = Vector3.Lerp(
-                                hebePosition.root.transform.rotation.eulerAngles, to, 0.6f * Time.deltaTime);
+                            
+                            hebePosition.root.transform.rotation = Quaternion.RotateTowards( hebePosition.root.transform.rotation, _targetRotation, turningRate * Time.deltaTime);
                         }
                         else
                         {
-                            hebePosition.root.transform.eulerAngles = to;
+                            hebePosition.root.transform.eulerAngles = endBand1.transform.eulerAngles;
                             rotating = false;
                             fallenLassen = true;
                         }
@@ -73,7 +79,7 @@ public class MyObjectManager : MonoBehaviour
                         if (!fallenLassen)
                         {
                             target = hebePosition;
-                            if (Vector3.Distance(produkt.transform.position, hebePosition.position) > 0.5f)
+                            if (Vector3.Distance(produkt.transform.position, hebePosition.position) > 1f)
                             {
                                 target = hebePosition;
                                 produkt.transform.position = Vector3.Lerp(produkt.transform.position,
@@ -83,21 +89,156 @@ public class MyObjectManager : MonoBehaviour
                             else
                             {
                                 produkt.transform.position = hebePosition.position;
+                                
                                 rotating = true;
                             }
                         }
                         else
                         {
-                            if (Vector3.Distance(produkt.transform.position, fallPosition.position) > 0.5f)
+                            if (Vector3.Distance(produkt.transform.position, fallPosition.position) > 1f)
                             {
+                                fallPosition.transform.position = endBand1.transform.GetChild(0).transform.position +
+                                                                  new Vector3(0, 2, 0);
                                 target = fallPosition;
-                                Vector3 targetPosition = fallPosition.position + (-fallPosition.forward * distance);
-                                produkt.transform.position = Vector3.Lerp(produkt.transform.position, targetPosition,
-                                    Time.deltaTime * 1f);
+                                produkt.transform.position = Vector3.Lerp(produkt.transform.position, fallPosition.position,
+                                    Time.deltaTime * 2f);
                                 produkt.transform.rotation = hebePosition.root.transform.rotation;
                             }
                             else
                             {
+                                produkt.transform.position = fallPosition.position;
+                                produkt.GetComponent<Rigidbody>().useGravity = true;
+                                productionBand.GetComponent<MyProductionSpawner>().produkt = null;
+                                productionBand.GetComponent<MyProductionSpawner>().somethingHasSpawned = false;
+                                isPickedUp = false;
+                                processProduct = false;
+                                fallenLassen = false;
+                                isReset = true;
+
+                            }
+                        }
+                    }
+                } else if (chooseBandNr == 2)
+                {
+                    if (rotating)
+                    {
+                        target = hebePosition;
+                        Quaternion _targetRotation = endBand2.transform.rotation;
+                        if (Vector3.Distance(hebePosition.root.transform.eulerAngles, endBand2.transform.eulerAngles) > 1f)
+                        {
+                            
+                            hebePosition.root.transform.rotation = Quaternion.RotateTowards( hebePosition.root.transform.rotation, _targetRotation, turningRate * Time.deltaTime);
+                        }
+                        else
+                        {
+                            hebePosition.root.transform.eulerAngles = endBand2.transform.eulerAngles;
+                            rotating = false;
+                            fallenLassen = true;
+                        }
+
+                        Vector3 targetPosition = fingerHebePosition.position + (-fingerHebePosition.forward * distance);
+                        produkt.transform.position = targetPosition;
+                        produkt.transform.rotation = hebePosition.root.transform.rotation;
+                    }
+                    else
+                    {
+                        if (!fallenLassen)
+                        {
+                            target = hebePosition;
+                            if (Vector3.Distance(produkt.transform.position, hebePosition.position) > 1f)
+                            {
+                                target = hebePosition;
+                                produkt.transform.position = Vector3.Lerp(produkt.transform.position,
+                                    hebePosition.position,
+                                    Time.deltaTime * 2f);
+                            }
+                            else
+                            {
+                                produkt.transform.position = hebePosition.position;
+                                
+                                rotating = true;
+                            }
+                        }
+                        else
+                        {
+                            if (Vector3.Distance(produkt.transform.position, fallPosition.position) > 1f)
+                            {
+                                fallPosition.transform.position = endBand2.transform.GetChild(0).transform.position +
+                                                                  new Vector3(0, 2, 0);
+                                target = fallPosition;
+                                produkt.transform.position = Vector3.Lerp(produkt.transform.position, fallPosition.position,
+                                    Time.deltaTime * 2f);
+                                produkt.transform.rotation = hebePosition.root.transform.rotation;
+                            }
+                            else
+                            {
+                                produkt.transform.position = fallPosition.position;
+                                produkt.GetComponent<Rigidbody>().useGravity = true;
+                                productionBand.GetComponent<MyProductionSpawner>().produkt = null;
+                                productionBand.GetComponent<MyProductionSpawner>().somethingHasSpawned = false;
+                                isPickedUp = false;
+                                processProduct = false;
+                                fallenLassen = false;
+                                isReset = true;
+
+                            }
+                        }
+                    }
+                } else if (chooseBandNr == 3)
+                {
+                    if (rotating)
+                    {
+                        Quaternion _targetRotation = endBand3.transform.rotation;
+                        Vector3 to = new Vector3(0, 90, 0);
+                        if (Vector3.Distance(hebePosition.root.transform.eulerAngles, endBand3.transform.eulerAngles) > 1f)
+                        {
+                            
+                            hebePosition.root.transform.rotation = Quaternion.RotateTowards( hebePosition.root.transform.rotation, _targetRotation, turningRate * Time.deltaTime);
+                        }
+                        else
+                        {
+                            hebePosition.root.transform.eulerAngles = endBand3.transform.eulerAngles;
+                            rotating = false;
+                            fallenLassen = true;
+                        }
+
+                        Vector3 targetPosition = fingerHebePosition.position + (-fingerHebePosition.forward * distance);
+                        produkt.transform.position = targetPosition;
+                        produkt.transform.rotation = hebePosition.root.transform.rotation;
+                    }
+                    else
+                    {
+                        if (!fallenLassen)
+                        {
+                            target = hebePosition;
+                            if (Vector3.Distance(produkt.transform.position, hebePosition.position) > 1f)
+                            {
+                                target = hebePosition;
+                                produkt.transform.position = Vector3.Lerp(produkt.transform.position,
+                                    hebePosition.position,
+                                    Time.deltaTime * 2f);
+                            }
+                            else
+                            {
+                               
+                                produkt.transform.position = hebePosition.position;
+                                rotating = true;
+                            }
+                        }
+                        else
+                        {
+                            if (Vector3.Distance(produkt.transform.position, fallPosition.position) > 1f)
+                            {
+                                fallPosition.transform.position = endBand3.transform.GetChild(0).transform.position +
+                                                                  new Vector3(0, 2, 0);
+                                target = fallPosition;
+                                produkt.transform.position = Vector3.Lerp(produkt.transform.position, fallPosition.position,
+                                    Time.deltaTime * 2f);
+                                produkt.transform.rotation = hebePosition.root.transform.rotation;
+                            }
+                            else
+                            {
+                                produkt.transform.position = fallPosition.position;
                                 produkt.GetComponent<Rigidbody>().useGravity = true;
                                 productionBand.GetComponent<MyProductionSpawner>().produkt = null;
                                 productionBand.GetComponent<MyProductionSpawner>().somethingHasSpawned = false;
@@ -135,19 +276,34 @@ public class MyObjectManager : MonoBehaviour
 
 */
             target = defaultPosition;
-            Vector3 to = new Vector3(0, 0, 0);
-            if (Vector3.Distance(transform.eulerAngles, to) > 1f)
+            Quaternion _targetRotation = productionBand.transform.rotation;
+            if (Vector3.Distance(hebePosition.root.transform.eulerAngles, productionBand.transform.eulerAngles) > 1f)
             {
-                hebePosition.root.transform.eulerAngles = Vector3.Lerp(
-                    hebePosition.root.transform.rotation.eulerAngles, to, 0.6f * Time.deltaTime);
+                            
+                hebePosition.root.transform.rotation = Quaternion.RotateTowards( hebePosition.root.transform.rotation, _targetRotation, turningRate * Time.deltaTime);
             }
             else
             {
-                hebePosition.root.transform.eulerAngles = to;
+                hebePosition.root.transform.eulerAngles = productionBand.transform.eulerAngles;
                 isReset = false;
             }
 
         }
         
+    }
+    public GameObject raycastObject;
+
+    void CheckForHit(){
+
+        RaycastHit objectHit;
+        Vector3 dup = raycastObject.transform.TransformDirection(Vector3.up);
+        Debug.DrawRay(raycastObject.transform.position, dup * 5, Color.green);
+        if (Physics.Raycast(raycastObject.transform.position, dup, out objectHit, 5))
+        {
+            //do something if hit object ie
+            if(objectHit.transform.tag =="Product"){
+                target = productionBand.GetComponent<MyProductionSpawner>().produkt.transform;
+            }
+        }
     }
 }
